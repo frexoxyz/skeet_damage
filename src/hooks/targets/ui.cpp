@@ -11,6 +11,10 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 LRESULT __stdcall cheat::hooks::ui::wnd_proc(const HWND hwnd, const UINT msg, const WPARAM wparam, const LPARAM lparam)
 {
 	const bool bind_captured = keybind::is_any_capturing();
+	const bool tab_held = (::GetAsyncKeyState(VK_TAB) & 0x8000) != 0 ||
+		((msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) && wparam == VK_TAB);
+	cheat::weapon_cfg::set_binds_enabled(cheat::weapon_cfg::game_active() &&
+		(cheat::g_menu.input_active || tab_held));
 	cheat::weapon_cfg::process_key_message(hwnd, msg, wparam, lparam);
     if (msg == WM_KEYUP && wparam == VK_HOME) {
         cheat::g_menu.is_open ^= 1;

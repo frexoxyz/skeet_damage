@@ -20,6 +20,8 @@ bool cheat::hooks::client::mouse_input_enabled(void* rcx) {
 void* cheat::hooks::client::is_relative_mouse_mode(void* a1, bool active) {
 	const auto original = originals::is_relative_mouse_mode.original<void*(*)(void* a1, bool active)>();
 	cheat::g_menu.input_active = active;
+	const bool tab_held = (::GetAsyncKeyState(VK_TAB) & 0x8000) != 0;
+	cheat::weapon_cfg::set_binds_enabled(cheat::weapon_cfg::game_active() && (active || tab_held));
 	return original(a1, cheat::g_menu.is_open ? false : active);
 }
 
@@ -29,9 +31,14 @@ void cheat::hooks::client::on_render_start(void* a1) {
 
 	if (!sdk::g_offsets.interfaces.engine->in_game() || !sdk::g_offsets.interfaces.engine->is_connected())
 	{
+		cheat::weapon_cfg::set_game_active(false);
+		cheat::weapon_cfg::set_binds_enabled(false);
 		cheat::weapon_cfg::set_active_weapon(0);
 		return;
 	}
+	cheat::weapon_cfg::set_game_active(true);
+	const bool tab_held = (::GetAsyncKeyState(VK_TAB) & 0x8000) != 0;
+	cheat::weapon_cfg::set_binds_enabled(cheat::g_menu.input_active || tab_held);
 
 	auto local_pawn = sdk::g_offsets.interfaces.entity_system->split_screen_view_pawn(0);
 	if (!local_pawn)

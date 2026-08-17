@@ -148,6 +148,9 @@ namespace cheat {
 	void c_menu::on_overlay() {
 		weapon_cfg::update_binds();
 
+		if (!weapon_cfg::game_active())
+			return;
+
 		if (!weapon_cfg::show_indicator.get())
 			return;
 

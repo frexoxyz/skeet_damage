@@ -6,12 +6,14 @@
 namespace {
 	using namespace cheat::weapon_cfg;
 	std::atomic<std::uint16_t> active_item{};
+	std::atomic_bool game_is_active{};
 	bool force_state{};
 	bool damage_state{};
 	enum class active_action { none, force_lethal, damage_override };
 	active_action last_action = active_action::none;
 	std::vector<int> held_output_keys;
 	bool binds_initialized{};
+	bool binds_enabled{};
 	bool output_reassert_pending{};
 	std::vector<int> pending_pulse_release;
 	constexpr ULONG_PTR injected_input_tag = static_cast<ULONG_PTR>(0xF1A7E55u);
@@ -129,6 +131,10 @@ namespace {
 
 void cheat::weapon_cfg::set_active_weapon(std::uint16_t index) { active_item.store(index, std::memory_order_relaxed); }
 
+void cheat::weapon_cfg::set_game_active(bool active) { game_is_active.store(active, std::memory_order_relaxed); }
+
+bool cheat::weapon_cfg::game_active() { return game_is_active.load(std::memory_order_relaxed); }
+
 cheat::weapon_cfg::profile_id cheat::weapon_cfg::active_profile() {
 	const auto item = active_item.load(std::memory_order_relaxed);
 
@@ -169,6 +175,10 @@ void cheat::weapon_cfg::update_binds() {
 			send_key(*it, false);
 		pending_pulse_release.clear();
 	}
+	if (!binds_enabled) {
+		set_held_output({});
+		return;
+	}
 	if (force_lethal_mode.get() == keybind::always) 
 		keybind::set_active(&force_lethal_key.get(), true);
 
@@ -177,6 +187,27 @@ void cheat::weapon_cfg::update_binds() {
 
 	normalize_active_action();
 	set_held_output(last_action != active_action::none ? force_lethal_skeet_key.get() : std::vector<int>{});
+}
+
+void cheat::weapon_cfg::set_binds_enabled(bool enabled) {
+	initialize_binds();
+	if (binds_enabled == enabled)
+		return;
+
+	binds_enabled = enabled;
+	keybind::keys_down().clear();
+	if (enabled)
+		return;
+
+	for (auto& [_, bind] : keybind::binds()) {
+		if (bind.mode_ptr && *bind.mode_ptr != keybind::hold)
+			continue;
+		*bind.is_active_ptr = false;
+		if (bind.mirror_value)
+			*bind.mirror_value = false;
+	}
+	set_held_output({});
+	normalize_active_action();
 }
 
 void cheat::weapon_cfg::process_key_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -195,7 +226,7 @@ void cheat::weapon_cfg::process_key_message(HWND hwnd, UINT msg, WPARAM wparam, 
 			bind_lparam &= ~(static_cast<LPARAM>(1) << 30);
 	}
 
-	keybind::process_msg(msg, wparam, bind_lparam);
+	keybind::process_msg(msg, wparam, bind_lparam, binds_enabled);
 	force_state = keybind::is_active(&force_lethal_key.get());
 	damage_state = keybind::is_active(&damage_override_key.get());
 

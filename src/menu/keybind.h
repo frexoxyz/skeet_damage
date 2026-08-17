@@ -89,7 +89,7 @@ namespace keybind {
 		return out.empty() ? "None" : out;
 	}
 
-	inline bool process_msg(UINT msg, WPARAM wparam, LPARAM lparam) {
+	inline bool process_msg(UINT msg, WPARAM wparam, LPARAM lparam, bool activate_binds = true) {
 		if (msg == WM_KILLFOCUS) {
 			keys_down().clear();
 			for (auto& [_, bind] : binds()) if ((!bind.mode_ptr || *bind.mode_ptr == hold)) {
@@ -125,6 +125,10 @@ namespace keybind {
 				*capture_target() = capture_buffer(); stop_capture();
 			}
 			consumed = true;
+		}
+		if (!activate_binds) {
+			keys_down().clear();
+			return consumed;
 		}
 		if (repeat) return consumed;
 		for (auto& [_, bind] : binds()) {
