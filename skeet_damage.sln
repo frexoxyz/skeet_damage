@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37411.7
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "skeet_damage", "src\skeet_damage.vcxproj", "{5DD8E364-97DE-498C-AFD8-C1AC3F352F21}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5DD8E364-97DE-498C-AFD8-C1AC3F352F21}.Release|x64.ActiveCfg = Release|x64
+		{5DD8E364-97DE-498C-AFD8-C1AC3F352F21}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9C619A9F-D228-4703-BFBE-6B6F4E2D774D}
+	EndGlobalSection
+EndGlobal
